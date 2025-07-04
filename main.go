@@ -1,25 +1,43 @@
 package main
 
 import (
-	"database/sql"
+	"fmt"
 	"os"
+
+	"Diplom_Go/pkg/db"
+	"Diplom_Go/pkg/server"
 
 	_ "modernc.org/sqlite"
 )
 
-var db *sql.DB
-
 func main() {
 
-	dbFile := "scheduler.db"
-	_, err := os.Stat(dbFile)
+	//step1 - Web server
+	Port := ":7540"
+	webDir := "./web"
 
-	var install bool
+	err := server.Run(Port, webDir)
 	if err != nil {
-		install = true
+		fmt.Println(err)
 	}
-	// если install равен true, после открытия БД требуется выполнить
-	// sql-запрос с CREATE TABLE и CREATE INDEX
 
-	db.Init("scheduler.db")
+	//step2 - DataBase SQLite
+	todo_dbfile := os.Getenv("TODO_DBFILE")
+	dbFile := "scheduler.db"
+
+	if len(todo_dbfile) > 0 {
+		dbFile = todo_dbfile
+	}
+
+	//_, err := os.Stat(dbFile)
+
+	//var install bool
+	//if err != nil {
+	//	install = true
+	//}
+
+	err = db.Init(dbFile)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

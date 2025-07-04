@@ -1,4 +1,4 @@
-module final_project
+module Diplom_Go
 
 go 1.23.6
 
