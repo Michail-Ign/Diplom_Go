@@ -1,6 +1,7 @@
 package server
 
 import (
+	"Diplom_Go/pkg/api"
 	"log"
 	"net/http"
 	"path/filepath"
@@ -18,7 +19,10 @@ func Run(Port string, webDir string) error {
 		http.ServeFile(w, r, filepath.Join(webDir, r.URL.Path))
 	})
 
-	// Запуск сервера на порту 7540
+	//
+	api.Init()
+
+	// Запуск сервера на порту Port
 	log.Println("Сервер запущен на http://localhost" + Port)
 	err := http.ListenAndServe(Port, nil)
 	if err != nil {

@@ -30,6 +30,7 @@ func requestJSON(apipath string, values map[string]any, method string) ([]byte, 
 
 	req, err := http.NewRequest(method, getURL(apipath), bytes.NewBuffer(data))
 	if err != nil {
+
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -38,6 +39,7 @@ func requestJSON(apipath string, values map[string]any, method string) ([]byte, 
 	if len(Token) > 0 {
 		jar, err := cookiejar.New(nil)
 		if err != nil {
+
 			return nil, err
 		}
 		jar.SetCookies(req.URL, []*http.Cookie{
@@ -51,12 +53,14 @@ func requestJSON(apipath string, values map[string]any, method string) ([]byte, 
 
 	resp, err = client.Do(req)
 	if err != nil {
+
 		return nil, err
 	}
 
 	if resp.Body != nil {
 		defer resp.Body.Close()
 	}
+
 	return io.ReadAll(resp.Body)
 }
 
@@ -65,12 +69,14 @@ func postJSON(apipath string, values map[string]any, method string) (map[string]
 		m   map[string]any
 		err error
 	)
-
+	fmt.Println(values)
 	body, err := requestJSON(apipath, values, method)
 	if err != nil {
 		return nil, err
 	}
+
 	err = json.Unmarshal(body, &m)
+
 	return m, err
 }
 
@@ -99,6 +105,7 @@ func TestAddTask(t *testing.T) {
 			"comment": v.comment,
 			"repeat":  v.repeat,
 		}, http.MethodPost)
+
 		assert.NoError(t, err)
 
 		e, ok := m["error"]
@@ -120,10 +127,12 @@ func TestAddTask(t *testing.T) {
 				"comment": v.comment,
 				"repeat":  v.repeat,
 			}, http.MethodPost)
+
 			assert.NoError(t, err)
 
 			e, ok := m["error"]
 			if ok && len(fmt.Sprint(e)) > 0 {
+
 				t.Errorf("Неожиданная ошибка %v для задачи %v", e, v)
 				continue
 			}
@@ -148,6 +157,19 @@ func TestAddTask(t *testing.T) {
 				continue
 			}
 			if today && task.Date != now.Format(`20060102`) {
+				//
+				fmt.Println("-----")
+				fmt.Println(v)
+				fmt.Println("    ->err2 = " + ", Title2=" + v.title + ", date2=" + v.date + ", v.repeat=" + v.repeat)
+				fmt.Println(m)
+				//
+				fmt.Println("    today = " + strconv.FormatBool(today))
+				fmt.Println("    now = " + now.Format(`20060102`))
+				fmt.Println("    task.Date = " + task.Date)
+				/*fmt.Println(m)
+				fmt.Println("    err")
+				fmt.Println(err)*/
+
 				t.Errorf("Дата должна быть сегодняшняя %v", v)
 			}
 		}

@@ -23,7 +23,7 @@ func Init(dbFile string) error {
 		install = true
 	}
 
-	db, err := sql.Open("sqlite", dbFile)
+	db, err := Open(dbFile)
 	if err != nil {
 
 		return err
@@ -39,4 +39,20 @@ func Init(dbFile string) error {
 		}
 	}
 	return nil
+}
+
+func Open(dbFile string) (*sql.DB, error) {
+
+	todo_dbfile := os.Getenv("TODO_DBFILE")
+	if len(todo_dbfile) > 0 {
+		dbFile = todo_dbfile
+	}
+
+	db_r, err := sql.Open("sqlite", dbFile)
+	if err != nil {
+
+		return nil, err
+	}
+
+	return db_r, nil
 }

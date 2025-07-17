@@ -58,7 +58,7 @@ func walkDir(path string, f func(fname string) error) error {
 
 func TestApp(t *testing.T) {
 	cmp := func(fname string) error {
-		fmt.Println("    fname = " + fname)
+
 		fbody, err := os.ReadFile(fname)
 		if err != nil {
 			return err
