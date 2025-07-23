@@ -4,10 +4,21 @@ import (
 	"Diplom_Go/pkg/api"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
+	"strings"
 )
 
 func Run(Port string, webDir string) error {
+
+	todo_port := os.Getenv("TODO_PORT")
+	if len(todo_port) > 0 {
+		Port = todo_port
+	}
+	if !strings.HasPrefix(Port, ":") {
+		Port = ":" + Port
+	}
+	log.Println("set Port = ", Port)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Если запрос к корню, возвращаем index.html
@@ -26,7 +37,9 @@ func Run(Port string, webDir string) error {
 	log.Println("Сервер запущен на http://localhost" + Port)
 	err := http.ListenAndServe(Port, nil)
 	if err != nil {
+		log.Println("Ошибка сервера:")
 		log.Fatal(err)
+
 		return err
 	}
 	return nil

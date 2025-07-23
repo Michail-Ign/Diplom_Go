@@ -100,7 +100,7 @@ func TestTasks(t *testing.T) {
 	if !Search {
 		return
 	}
-	tasks = getTasks(t, "УК")
+	tasks = getTasks(t, "УК")	
 	assert.Equal(t, len(tasks), 1)
 	tasks = getTasks(t, now.Format(`02.01.2006`))
 	assert.Equal(t, len(tasks), 3)

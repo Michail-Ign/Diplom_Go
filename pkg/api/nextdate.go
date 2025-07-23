@@ -55,7 +55,7 @@ func search_day(date time.Time, m_interval []string) (bool, error) {
 			return false, fmt.Errorf("[parse int] %w", err)
 		}
 
-		if day >= 31 {
+		if day > 31 {
 			return false, fmt.Errorf("недопустимый день месяца" + d)
 		}
 
@@ -65,12 +65,16 @@ func search_day(date time.Time, m_interval []string) (bool, error) {
 			if int(l_day.Day()) == int(date.Day()) {
 				return true, nil
 			}
+
+		} else if day <= -3 {
+			return false, fmt.Errorf("недопустимый день месяца" + d)
+
 		} else if day == int(date.Day()) {
 			return true, nil
 		}
 	}
 
-	return false, fmt.Errorf("невходит в период")
+	return false, nil //fmt.Errorf("не входит в период")
 }
 
 func contains_period(date time.Time, m_interval, month_interval []string) (bool, error) {
@@ -119,6 +123,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	interval := 0
 	massive := strings.Split(repeat, " ")
 
+	
 	switch massive[0] {
 
 	case "d":
@@ -157,7 +162,9 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 
 			ok, err := contains(day_w, m_interval)
 			if ok {
-				break
+				if afterNow(date, now) {
+					break
+				}
 			} else if err != nil {
 				return "", err
 			}
@@ -170,21 +177,22 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 		m_interval := strings.Split(massive[1], ",")
 
-		month_interval := strings.Split(massive[2], ",")
-		//if len(massive) > 2 {
-		//	month_interval := strings.Split(massive[2], ",")
-		//	month_interval:=append(month_interval, var_m2)
-		//} else {
-		//	var_m2 := strings.Split("", ",")
-		//}
-		//month_interval := strings.Split(var_m2, ",")
+		var month_interval []string
+
+		if len(massive) == 3 {
+			month_interval = strings.Split(massive[2], ",")
+		}
 
 		for {
 			date = date.AddDate(0, 0, 1)
 
 			ok, err := contains_period(date, m_interval, month_interval)
 			if ok {
-				break
+
+				if afterNow(date, now) {
+					break
+				}
+
 			} else if err != nil {
 				return "", err
 			}

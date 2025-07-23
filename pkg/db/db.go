@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"log"
 	"os"
 )
 
@@ -15,6 +16,7 @@ const schema = `CREATE TABLE scheduler (
 CREATE INDEX scheduler_date ON scheduler (date);`
 
 var db *sql.DB
+var nameDB string
 
 func Init(dbFile string) error {
 
@@ -23,9 +25,11 @@ func Init(dbFile string) error {
 		install = true
 	}
 
-	db, err := Open(dbFile)
-	if err != nil {
+	nameDB = dbFile
+	log.Println("Init parametres nameDB: ", nameDB)
 
+	db, err := Open()
+	if err != nil {
 		return err
 	}
 	defer db.Close()
@@ -38,19 +42,22 @@ func Init(dbFile string) error {
 			return err
 		}
 	}
+	log.Println("Base init success")
 	return nil
 }
 
-func Open(dbFile string) (*sql.DB, error) {
+func Open() (*sql.DB, error) { 
 
 	todo_dbfile := os.Getenv("TODO_DBFILE")
 	if len(todo_dbfile) > 0 {
-		dbFile = todo_dbfile
+		nameDB = todo_dbfile
 	}
+	log.Println("Open db = ", nameDB)
 
-	db_r, err := sql.Open("sqlite", dbFile)
+	db_r, err := sql.Open("sqlite", nameDB)
 	if err != nil {
 
+		log.Println("Error Open db = ", err)
 		return nil, err
 	}
 

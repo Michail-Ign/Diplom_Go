@@ -7,18 +7,34 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"time"
 )
 
-type SucessRet struct {
-	ID string `json:"id"`
-}
+func getTaskHandler(w http.ResponseWriter, req *http.Request) {
 
-type ErrorRet struct {
-	Error string `json:"error"`
-}
+	id := req.URL.Query().Get("id")
 
-func addTaskHandler(w http.ResponseWriter, req *http.Request) {
+	task, err := db.GetTask(id)
+
+	var err_ret ErrorRet
+	if err != nil {
+		//http.StatusInternalServerError
+		err_ret.Error = fmt.Sprintf("ошибка получения задачи (%v)", err)
+		err = writeJson(w, err_ret)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		return
+	}
+
+	err = writeJson(w, task)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+func updTaskHandler(w http.ResponseWriter, req *http.Request) {
 
 	var err_ret ErrorRet
 
@@ -82,11 +98,11 @@ func addTaskHandler(w http.ResponseWriter, req *http.Request) {
 
 	//4 Пришла очередь вызвать функцию db.AddTask(task),
 	// чтобы добавить задачу в базу данных.
-	id, err := db.AddTask(&task)
+	err = db.UpdateTask(&task)
 	if err != nil {
 
 		//http.Error(w, err.Error(), http.StatusBadRequest)
-		err_ret.Error = fmt.Sprintf("ошибка добавления задачи (%v)", err)
+		err_ret.Error = fmt.Sprintf("ошибка обновления задачи (%v)", err)
 		err = writeJson(w, err_ret)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -98,7 +114,7 @@ func addTaskHandler(w http.ResponseWriter, req *http.Request) {
 
 	//5 Осталось возвратить идентификатор добавленной задачи в виде JSON.
 	var id_ret SucessRet
-	id_ret.ID = strconv.FormatInt(id, 10)
+	id_ret.ID = task.ID
 
 	err = writeJson(w, id_ret)
 	if err != nil {
@@ -108,42 +124,52 @@ func addTaskHandler(w http.ResponseWriter, req *http.Request) {
 
 }
 
-func checkDate(task *db.Task) error {
+func delTaskHandler(w http.ResponseWriter, req *http.Request) {
 
-	now := time.Now()
+	id := req.URL.Query().Get("id")
+	var err_ret ErrorRet
 
-	//3_1 Если поле date не указано или содержит пустую строку, берётся сегодняшнее число
-	if task.Date == "" {
-		task.Date = now.Format(Format_date)
-	}
-
-	t, err := time.Parse(Format_date, task.Date)
-	if err != nil {
-		return err
-	}
-
-	next, err := NextDate(now, task.Date, task.Repeat)
-	if err != nil && len(task.Repeat) != 0 {
-		return err
-	}
-
-	// если сегодня (now) больше task.Date (t)
-	if afterNow(now, t) {
-		if len(task.Repeat) == 0 {
-			// если правила повторения нет, то берём сегодняшнее число
-			task.Date = now.Format(Format_date)
-		} else {
-			// в противном случае, берём вычисленную ранее следующую дату
-			task.Date = next
+	if id == "" {
+		err_ret.Error = "не задан параметр id"
+		err := writeJson(w, err_ret)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+
+		return
+	}
+	_, err := strconv.Atoi(id)
+	if err != nil {
+		err_ret.Error = fmt.Sprintf("параметр  id не валиден  (%v)", err)
+		err := writeJson(w, err_ret)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		return
 	}
 
-	return nil
-}
+	err = db.DeleteTask(id)
 
-// Вспомогательная функция для сериализации и отправки JSON-ответа
-func writeJson(w http.ResponseWriter, data any) error {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if err != nil {
+		//http.StatusInternalServerError
+		err_ret.Error = fmt.Sprintf("ошибка при удалении задачи id  (%v)", err)
+		err = writeJson(w, err_ret)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	return json.NewEncoder(w).Encode(data)
+		return
+	}
+
+	emptyJSON := map[string]interface{}{}
+	err = writeJson(w, emptyJSON)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 }

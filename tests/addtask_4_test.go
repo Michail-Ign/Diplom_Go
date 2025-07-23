@@ -69,7 +69,7 @@ func postJSON(apipath string, values map[string]any, method string) (map[string]
 		m   map[string]any
 		err error
 	)
-	fmt.Println(values)
+
 	body, err := requestJSON(apipath, values, method)
 	if err != nil {
 		return nil, err
@@ -157,18 +157,6 @@ func TestAddTask(t *testing.T) {
 				continue
 			}
 			if today && task.Date != now.Format(`20060102`) {
-				//
-				fmt.Println("-----")
-				fmt.Println(v)
-				fmt.Println("    ->err2 = " + ", Title2=" + v.title + ", date2=" + v.date + ", v.repeat=" + v.repeat)
-				fmt.Println(m)
-				//
-				fmt.Println("    today = " + strconv.FormatBool(today))
-				fmt.Println("    now = " + now.Format(`20060102`))
-				fmt.Println("    task.Date = " + task.Date)
-				/*fmt.Println(m)
-				fmt.Println("    err")
-				fmt.Println(err)*/
 
 				t.Errorf("Дата должна быть сегодняшняя %v", v)
 			}
