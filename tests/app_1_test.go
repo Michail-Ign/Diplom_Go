@@ -32,6 +32,7 @@ func getBody(path string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
+
 	return body, err
 }
 
@@ -57,14 +58,17 @@ func walkDir(path string, f func(fname string) error) error {
 
 func TestApp(t *testing.T) {
 	cmp := func(fname string) error {
+
 		fbody, err := os.ReadFile(fname)
 		if err != nil {
 			return err
 		}
+
 		body, err := getBody(fname)
 		if err != nil {
 			return err
 		}
+
 		assert.Equal(t, len(fbody), len(body), `сервер возвращает для %s данные другого размера`, fname)
 		return nil
 	}
