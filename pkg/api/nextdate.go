@@ -80,9 +80,7 @@ func searchDay(date time.Time, m_interval []string) (bool, error) {
 func containsPeriod(date time.Time, m_interval, month_interval []string) (bool, error) {
 
 	//Проверка и по месяцу
-	if len(month_interval) > 0 {
-
-	} else {
+	if len(month_interval) == 0 {
 		return searchDay(date, m_interval)
 	}
 
