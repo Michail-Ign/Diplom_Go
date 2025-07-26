@@ -32,7 +32,7 @@ func contains(d time.Weekday, m []string) (bool, error) {
 	return false, nil
 }
 
-func get_last_date(date time.Time, d_interval int) time.Time {
+func getLastDate(date time.Time, d_interval int) time.Time {
 
 	y := date.Year()
 	m := date.Month()
@@ -46,7 +46,7 @@ func get_last_date(date time.Time, d_interval int) time.Time {
 	return date_return
 }
 
-func search_day(date time.Time, m_interval []string) (bool, error) {
+func searchDay(date time.Time, m_interval []string) (bool, error) {
 
 	for _, d := range m_interval {
 
@@ -61,7 +61,7 @@ func search_day(date time.Time, m_interval []string) (bool, error) {
 
 		if day == -1 || day == -2 {
 			//Получить последний день месяца
-			l_day := get_last_date(date, day)
+			l_day := getLastDate(date, day)
 			if int(l_day.Day()) == int(date.Day()) {
 				return true, nil
 			}
@@ -77,13 +77,13 @@ func search_day(date time.Time, m_interval []string) (bool, error) {
 	return false, nil //fmt.Errorf("не входит в период")
 }
 
-func contains_period(date time.Time, m_interval, month_interval []string) (bool, error) {
+func containsPeriod(date time.Time, m_interval, month_interval []string) (bool, error) {
 
 	//Проверка и по месяцу
 	if len(month_interval) > 0 {
 
 	} else {
-		return search_day(date, m_interval)
+		return searchDay(date, m_interval)
 	}
 
 	for _, m := range month_interval {
@@ -99,7 +99,7 @@ func contains_period(date time.Time, m_interval, month_interval []string) (bool,
 		if int(date.Month()) == month {
 
 			//Совпал месяц проверка по дате
-			return search_day(date, m_interval)
+			return searchDay(date, m_interval)
 
 		}
 	}
@@ -123,7 +123,6 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 	interval := 0
 	massive := strings.Split(repeat, " ")
 
-	
 	switch massive[0] {
 
 	case "d":
@@ -186,7 +185,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		for {
 			date = date.AddDate(0, 0, 1)
 
-			ok, err := contains_period(date, m_interval, month_interval)
+			ok, err := containsPeriod(date, m_interval, month_interval)
 			if ok {
 
 				if afterNow(date, now) {
@@ -231,5 +230,4 @@ func afterNow(date, now time.Time) bool {
 	}
 
 	return dd > nd
-	//return date.After(now)
 }

@@ -24,9 +24,13 @@ ENV PATH=$PATH:/usr/local/go/bin
 # Создаем рабочую директорию
 WORKDIR /app
 
-# Копируем исходный код (или скомпилированный бинарник)
-# Предположим, что у вас есть исходники в текущей папке
+# Копируем зависимости
+COPY go.mod go.sum ./ 
+# Установка нужных модулей
+RUN go mod download
+# Копируем остальной код
 COPY . .
+#COPY *.db ./
 
 # Собираем программу
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .

@@ -26,14 +26,9 @@ func addTaskHandler(w http.ResponseWriter, req *http.Request) {
 	bodyBytes, err := io.ReadAll(req.Body)
 
 	if err != nil {
-		//http.StatusInternalServerError
-		err_ret.Error = fmt.Sprintf("ошибка чтения тела (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
+		err_ret.Error = fmt.Sprintf("ошибка чтения тела (%v)", err)
+		writeJson(w, err_ret)
 		return
 	}
 
@@ -41,14 +36,8 @@ func addTaskHandler(w http.ResponseWriter, req *http.Request) {
 
 	if err := json.Unmarshal(bodyBytes, &task); err != nil {
 
-		//http.StatusBadRequest
 		err_ret.Error = fmt.Sprintf("ошибка десериализации (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
 
@@ -56,26 +45,16 @@ func addTaskHandler(w http.ResponseWriter, req *http.Request) {
 	if task.Title == "" {
 
 		err_ret.Error = "пустое значение поля title"
-		//w.WriteHeader(http.StatusInternalServerError)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
 
 	//3 Проверить на корректность полученное значение task.Date.
 	// Это лучше сделать в отдельной функции checkDate(task *db.Task) error
 	if err := checkDate(&task); err != nil {
-		//http.Error(w, err.Error(), http.StatusBadRequest)
+
 		err_ret.Error = fmt.Sprintf("неверная дата (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		writeJson(w, err_ret)
 
 		return
 	}
@@ -85,14 +64,8 @@ func addTaskHandler(w http.ResponseWriter, req *http.Request) {
 	id, err := db.AddTask(&task)
 	if err != nil {
 
-		//http.Error(w, err.Error(), http.StatusBadRequest)
 		err_ret.Error = fmt.Sprintf("ошибка добавления задачи (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
 
@@ -100,12 +73,7 @@ func addTaskHandler(w http.ResponseWriter, req *http.Request) {
 	var id_ret SucessRet
 	id_ret.ID = strconv.FormatInt(id, 10)
 
-	err = writeJson(w, id_ret)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+	writeJson(w, id_ret)
 }
 
 func checkDate(task *db.Task) error {
@@ -142,8 +110,28 @@ func checkDate(task *db.Task) error {
 }
 
 // Вспомогательная функция для сериализации и отправки JSON-ответа
-func writeJson(w http.ResponseWriter, data any) error {
+/*func writeJson(w http.ResponseWriter, data any) error {
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	return json.NewEncoder(w).Encode(data)
+	//log.Println("data = ", data) //
+	err := json.NewEncoder(w).Encode(data)
+
+	return err
+}*/
+
+func writeJson(w http.ResponseWriter, data any) {
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	//log.Println("2data = ", data) //
+	err := json.NewEncoder(w).Encode(data)
+
+	if err != nil {
+		//log.Println("2err = ", err.Error()) //
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	//log.Println("2err = nil") //
+
 }

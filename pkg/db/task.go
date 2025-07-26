@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -27,7 +26,7 @@ func AddTask(task *Task) (int64, error) {
 	}
 	defer db.Close()
 
-	query := `INSERT INTO scheduler (date, title, comment, repeat) VALUES (:date, :title, :comment, :repeat)`
+	query := `INSERT INTO scheduler (date, title, comment, repeat) VALUES (:date, :title, :comment, :repeat);`
 	res, err := db.Exec(query,
 		sql.Named("date", task.Date),
 		sql.Named("title", task.Title),
@@ -47,6 +46,7 @@ func checkDateFormat(dateStr string) bool {
 
 func Tasks(limit int, param string) ([]*Task, error) {
 
+	var err error
 	db, err := Open()
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func Tasks(limit int, param string) ([]*Task, error) {
 
 	if param == "" {
 
-		query = `SELECT  * FROM scheduler LIMIT :limit`
+		query = `SELECT  * FROM scheduler ORDER BY date LIMIT :limit;`
 		rows, err = db.Query(query, sql.Named("limit", limit))
 
 	} else if checkDateFormat(param) {
@@ -70,14 +70,14 @@ func Tasks(limit int, param string) ([]*Task, error) {
 		}
 		date_f := t.Format("20060102")
 
-		query = `SELECT * FROM scheduler WHERE date = :date LIMIT :limit `
+		query = `SELECT * FROM scheduler WHERE date = :date ORDER BY date LIMIT :limit;`
 		rows, err = db.Query(query,
 			sql.Named("limit", limit),
 			sql.Named("date", date_f))
 
 	} else {
 
-		query = `SELECT * FROM scheduler WHERE title LIKE :search OR comment LIKE :search ORDER BY date LIMIT :limit`
+		query = `SELECT * FROM scheduler WHERE title LIKE :search OR comment LIKE :search ORDER BY date LIMIT :limit;`
 
 		rows, err = db.Query(query,
 			sql.Named("limit", limit),
@@ -85,8 +85,7 @@ func Tasks(limit int, param string) ([]*Task, error) {
 	}
 
 	if err != nil {
-		log.Println("Err1 =", err)
-		return nil, err
+		return nil, fmt.Errorf("error query db: %w", err)
 	}
 	defer rows.Close()
 
@@ -97,16 +96,14 @@ func Tasks(limit int, param string) ([]*Task, error) {
 
 		err := rows.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 		if err != nil {
-			log.Println("Err2")
-			return nil, err
+			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 
 		ret_tasks = append(ret_tasks, &task)
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Println("Err3")
-		return nil, err
+		return nil, fmt.Errorf("error in next rows: %w", err)
 	}
 
 	if len(ret_tasks) == 0 {
@@ -125,7 +122,7 @@ func UpdateTask(task *Task) error {
 	defer db.Close()
 
 	// параметры пропущены, не забудьте указать WHERE
-	query := `UPDATE scheduler SET date =:date, title =:title, comment =:comment, repeat =:repeat WHERE id = :id`
+	query := `UPDATE scheduler SET date =:date, title =:title, comment =:comment, repeat =:repeat WHERE id = :id;`
 	res, err := db.Exec(query,
 		sql.Named("date", task.Date),
 		sql.Named("title", task.Title),
@@ -158,7 +155,7 @@ func UpdateDate(next string, id string) error {
 	defer db.Close()
 
 	// параметры пропущены, не забудьте указать WHERE
-	query := `UPDATE scheduler SET date =:date WHERE id = :id`
+	query := `UPDATE scheduler SET date =:date WHERE id = :id;`
 	res, err := db.Exec(query,
 		sql.Named("date", next),
 		sql.Named("id", id))
@@ -181,14 +178,14 @@ func UpdateDate(next string, id string) error {
 func GetTask(id string) (*Task, error) {
 
 	//dbFile := "scheduler.db"
-
+	var err error
 	db, err := Open()
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
 
-	query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE id = :id`
+	query := `SELECT id, date, title, comment, repeat FROM scheduler WHERE id = :id;`
 	row := db.QueryRow(query, sql.Named("id", id))
 
 	task := Task{}
@@ -203,14 +200,14 @@ func GetTask(id string) (*Task, error) {
 func DeleteTask(id string) error {
 
 	//dbFile := "scheduler.db"
-
+	var err error
 	db, err := Open()
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	query := `DELETE FROM scheduler WHERE id = :id`
+	query := `DELETE FROM scheduler WHERE id = :id;`
 	_, err = db.Exec(query, sql.Named("id", id))
 
 	if err != nil {

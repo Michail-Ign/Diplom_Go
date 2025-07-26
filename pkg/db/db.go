@@ -46,7 +46,7 @@ func Init(dbFile string) error {
 	return nil
 }
 
-func Open() (*sql.DB, error) { 
+func Open() (*sql.DB, error) {
 
 	todo_dbfile := os.Getenv("TODO_DBFILE")
 	if len(todo_dbfile) > 0 {

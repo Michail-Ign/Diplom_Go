@@ -17,22 +17,13 @@ func getTaskHandler(w http.ResponseWriter, req *http.Request) {
 
 	var err_ret ErrorRet
 	if err != nil {
-		//http.StatusInternalServerError
+
 		err_ret.Error = fmt.Sprintf("ошибка получения задачи (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
 
-	err = writeJson(w, task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	writeJson(w, task)
 }
 func updTaskHandler(w http.ResponseWriter, req *http.Request) {
 
@@ -42,14 +33,9 @@ func updTaskHandler(w http.ResponseWriter, req *http.Request) {
 	bodyBytes, err := io.ReadAll(req.Body)
 
 	if err != nil {
-		//http.StatusInternalServerError
-		err_ret.Error = fmt.Sprintf("ошибка чтения тела (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
+		err_ret.Error = fmt.Sprintf("ошибка чтения тела (%v)", err)
+		writeJson(w, err_ret)
 		return
 	}
 
@@ -57,14 +43,8 @@ func updTaskHandler(w http.ResponseWriter, req *http.Request) {
 
 	if err := json.Unmarshal(bodyBytes, &task); err != nil {
 
-		//http.StatusBadRequest
 		err_ret.Error = fmt.Sprintf("ошибка десериализации (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
 
@@ -72,27 +52,16 @@ func updTaskHandler(w http.ResponseWriter, req *http.Request) {
 	if task.Title == "" {
 
 		err_ret.Error = "пустое значение поля title"
-		//w.WriteHeader(http.StatusInternalServerError)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
 
 	//3 Проверить на корректность полученное значение task.Date.
 	// Это лучше сделать в отдельной функции checkDate(task *db.Task) error
 	if err := checkDate(&task); err != nil {
-		//http.Error(w, err.Error(), http.StatusBadRequest)
-		err_ret.Error = fmt.Sprintf("неверная дата (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
+		err_ret.Error = fmt.Sprintf("неверная дата (%v)", err)
+		writeJson(w, err_ret)
 		return
 	}
 
@@ -101,14 +70,8 @@ func updTaskHandler(w http.ResponseWriter, req *http.Request) {
 	err = db.UpdateTask(&task)
 	if err != nil {
 
-		//http.Error(w, err.Error(), http.StatusBadRequest)
 		err_ret.Error = fmt.Sprintf("ошибка обновления задачи (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
 
@@ -116,12 +79,7 @@ func updTaskHandler(w http.ResponseWriter, req *http.Request) {
 	var id_ret SucessRet
 	id_ret.ID = task.ID
 
-	err = writeJson(w, id_ret)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+	writeJson(w, id_ret)
 }
 
 func delTaskHandler(w http.ResponseWriter, req *http.Request) {
@@ -131,45 +89,26 @@ func delTaskHandler(w http.ResponseWriter, req *http.Request) {
 
 	if id == "" {
 		err_ret.Error = "не задан параметр id"
-		err := writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
 	_, err := strconv.Atoi(id)
 	if err != nil {
-		err_ret.Error = fmt.Sprintf("параметр  id не валиден  (%v)", err)
-		err := writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
+		err_ret.Error = fmt.Sprintf("параметр  id не валиден  (%v)", err)
+		writeJson(w, err_ret)
 		return
 	}
 
 	err = db.DeleteTask(id)
 
 	if err != nil {
-		//http.StatusInternalServerError
-		err_ret.Error = fmt.Sprintf("ошибка при удалении задачи id  (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
+		err_ret.Error = fmt.Sprintf("ошибка при удалении задачи id  (%v)", err)
+		writeJson(w, err_ret)
 		return
 	}
 
 	emptyJSON := map[string]interface{}{}
-	err = writeJson(w, emptyJSON)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+	writeJson(w, emptyJSON)
 }

@@ -17,19 +17,11 @@ type Password struct {
 
 func signinHandler(w http.ResponseWriter, req *http.Request) {
 
-	var err_ret ErrorRet
-
 	bodyBytes, err := io.ReadAll(req.Body)
 
 	if err != nil {
-		//http.StatusInternalServerError
-		err_ret.Error = fmt.Sprintf("ошибка чтения тела (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
+		writeJson(w, fmt.Sprintf("ошибка чтения тела (%v)", err))
 		return
 	}
 
@@ -37,60 +29,33 @@ func signinHandler(w http.ResponseWriter, req *http.Request) {
 
 	if err := json.Unmarshal(bodyBytes, &passw); err != nil {
 
-		err_ret.Error = fmt.Sprintf("ошибка десериализации (%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, fmt.Sprintf("ошибка десериализации (%v)", err))
 		return
 	}
 
-	todo_password := os.Getenv("TODO_PASSWORD")
+	todoPassword := os.Getenv("TODO_PASSWORD")
 	//todo_password = "123" //пока костыль
-	if len(todo_password) == 0 {
+	if len(todoPassword) == 0 {
 		return
 	}
 
-	if todo_password != passw.Password {
+	if todoPassword != passw.Password {
 
-		err_ret.Error = "Неверный пароль"
-		err := writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
+		writeJson(w, "Неверный пароль")
 		return
 	}
-
-	/*token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
-		"iat": time.Now().Unix(),
-	})*/
 
 	// получаем подписанный токен
 	tokenString, err := createJWTToken(passw.Password)
 	if err != nil {
-		//fmt.Printf("failed to sign jwt: %s\n", err)
-		err_ret.Error = "Token generation failed"
-		err := writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
+		writeJson(w, "Token generation failed")
 		return
 	}
 
 	//log.Println("token = ", tokenString)
-
 	res := map[string]string{"token": tokenString}
-	err = writeJson(w, res)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	writeJson(w, res)
 }
 
 func createJWTToken(password string) (string, error) {

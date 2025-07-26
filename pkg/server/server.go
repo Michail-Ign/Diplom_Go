@@ -11,9 +11,9 @@ import (
 
 func Run(Port string, webDir string) error {
 
-	todo_port := os.Getenv("TODO_PORT")
-	if len(todo_port) > 0 {
-		Port = todo_port
+	todoPort := os.Getenv("TODO_PORT")
+	if len(todoPort) > 0 {
+		Port = todoPort
 	}
 	if !strings.HasPrefix(Port, ":") {
 		Port = ":" + Port

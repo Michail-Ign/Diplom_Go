@@ -23,14 +23,10 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		// её желательно было реализовать на предыдущем шаге
 		err_ret.Error = fmt.Sprintf("ошибка получения задачи (%v)", err)
 
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
+		writeJson(w, err_ret)
 		return
 	}
+
 	writeJson(w, TasksResp{
 		Tasks: tasks,
 	})

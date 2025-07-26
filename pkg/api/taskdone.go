@@ -15,30 +15,19 @@ func taskDoneHandler(w http.ResponseWriter, req *http.Request) {
 
 	var err_ret ErrorRet
 	if err != nil {
-		//http.StatusInternalServerError
-		err_ret.Error = fmt.Sprintf("ошибка получения задачи по id(%v)", err)
-		err = writeJson(w, err_ret)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
 
+		err_ret.Error = fmt.Sprintf("ошибка получения задачи по id(%v)", err)
+		writeJson(w, err_ret)
 		return
 	}
 
 	if task.Repeat == "" {
 
 		err = db.DeleteTask(id)
-
 		if err != nil {
-			//http.StatusInternalServerError
+			
 			err_ret.Error = fmt.Sprintf("ошибка удаления задачи по id(%v)", err)
-			err = writeJson(w, err_ret)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-
+			writeJson(w, err_ret)
 			return
 		}
 
@@ -48,35 +37,22 @@ func taskDoneHandler(w http.ResponseWriter, req *http.Request) {
 		now := time.Now()
 		next, err := NextDate(now, task.Date, task.Repeat)
 		if err != nil {
-			err_ret.Error = fmt.Sprintf("ошибка удаления задачи по id(%v)", err)
-			err = writeJson(w, err_ret)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
 
+			err_ret.Error = fmt.Sprintf("ошибка удаления задачи по id(%v)", err)
+			writeJson(w, err_ret)
 			return
 		}
 
 		err = db.UpdateDate(next, id)
 		if err != nil {
-			err_ret.Error = fmt.Sprintf("ошибка обновления удаления задачи по id(%v)", err)
-			err = writeJson(w, err_ret)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
 
+			err_ret.Error = fmt.Sprintf("ошибка обновления удаления задачи по id(%v)", err)
+			writeJson(w, err_ret)
 			return
 		}
 
 	}
 
 	emptyJSON := map[string]interface{}{}
-	err = writeJson(w, emptyJSON)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
+	writeJson(w, emptyJSON)
 }
